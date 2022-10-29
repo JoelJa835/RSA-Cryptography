@@ -51,7 +51,7 @@ void generateKeys(){
                     printf("Error!");   
                     exit(1);             
                 }
-                gmp_fprintf(fp,"%Zd%Zd",n ,d);
+                gmp_fprintf(fp,"%Zd %Zd",n ,d);
                 fclose(fp);
                 
                 fp = fopen("private.key", "w");
@@ -59,7 +59,7 @@ void generateKeys(){
                     printf("Error!");   
                     exit(1);             
                 }
-                gmp_fprintf(fp,"%Zd%Zd",n ,e);
+                gmp_fprintf(fp,"%Zd %Zd",n ,e);
                 fclose(fp);
 
                 mpz_clear(p);
@@ -81,13 +81,68 @@ void generateKeys(){
     } 
 }
 
+
+int encyptMessage(long int n1, char* inputFile, char* outputFile){
+    
+    char *plaintext;
+    mpz_t c; mpz_init(c);
+    // mpz_t n; mpz_init(n);
+    // mpz_t e; mpz_init(e);
+
+    // mpz_set_ui(n,n1);
+    // mpz_set_ui(e,e1);
+
+    plaintext = (char*)calloc(n1,sizeof(char));
+
+    if(subtext == NULL){
+        printf("Error");
+    }
+    FILE* fp = fopen(inputFile, "r");
+    // checking if the file exist or not
+    if (fp == NULL) {
+        printf("File Not Found!\n");
+        return -1;
+    }
+
+    
+    // printf("%s",subtext);
+    printf("In Encrypt\n");
+    fgets(subtext, sizeof(subtext), fp);
+    printf("%s\n",subtext);
+
+    mpz_import(c,sizeof(subtext),1,sizeof(char),0,0,subtext);
+    gmp_printf("%Zd\n",c);
+
+    mpz_export(subtext,NULL,1,sizeof(char),0,0,c);
+    printf("%s\n",subtext);
+
+    //  while (fgets(subtext, sizeof(subtext), fp)!=NULL) {
+    //     for (size_t i = 0; i < sizeof(subtext); i++)
+    //     {
+    //         //mpz_powm_ui()
+    //     }
+        
+        
+    //  }
+
+    mpz_clear(c);
+    // mpz_clear(n);
+    // mpz_clear(e);
+    fclose(fp);
+    free(subtext);
+
+}
+
+
+
 int main(int argc, char *argv[] )  {  
    int opt;
-   char * inputFile,*outputFile,*keyFile;
+   char * inputFile,*outputFile,*keyFile,*n_string,*e_string;
+   char c;
     // put ':' in the starting of the
     // string so that program can 
     //distinguish between '?' and ':' 
-    while((opt = getopt(argc, argv,":i:o:k:d:e:gh")) != -1) 
+    while((opt = getopt(argc, argv,":i:o:k:degh")) != -1) 
     { 
         switch(opt) 
         { 
@@ -99,6 +154,11 @@ int main(int argc, char *argv[] )  {
                   return 1;
                 }
                 strcpy(inputFile,optarg);
+                
+
+
+
+                
                 break; 
             case 'o': 
                 printf("Output filename: %s\n", optarg);
@@ -108,6 +168,10 @@ int main(int argc, char *argv[] )  {
                   return 1;
                 }
                 strcpy(outputFile,optarg);
+                
+
+
+    
                 break; 
             case 'k': 
                 printf("Key filename: %s\n", optarg);
@@ -118,6 +182,8 @@ int main(int argc, char *argv[] )  {
                 }
                 strcpy(keyFile,optarg);
 
+
+                
                 break; 
             case 'g': 
                 generateKeys();
@@ -127,8 +193,38 @@ int main(int argc, char *argv[] )  {
 
                 break;
             case 'e': 
-                printf("option: %s\n", optarg); 
+                // opening the file in read mode
+                FILE* fp3 = fopen(keyFile, "r");
+                // checking if the file exist or not
+                if (fp3 == NULL) {
+                    printf("File Not Found1!\n");
+                    return -1;
+                } 
+                fseek(fp3, 0, SEEK_END);
+                long f_size = ftell(fp3);
+                fseek(fp3, 0, SEEK_SET);
+                n_string = (char*) calloc(f_size,sizeof(char));
+                size_t i=0;
+                while ((c = fgetc(fp3)) != ' ') {
+                    n_string[i]=c;
+                    i++;
+                }
+                e_string = (char*) calloc(f_size,sizeof(char));
+                i=0;
+                while ((c = fgetc(fp3)) != EOF) {
+                    e_string[i]=c;
+                    i++;
+                }
 
+                
+                fclose(fp3);
+                encyptMessage(atoi(n_string),inputFile,outputFile);
+
+                free(inputFile);
+                free(outputFile);
+                free(keyFile);
+                free(n_string);
+                free(e_string);
                 break; 
                 
             case 'h': 
@@ -147,4 +243,6 @@ int main(int argc, char *argv[] )  {
     for(; optind < argc; optind++){     
         printf("extra arguments: %s\n", argv[optind]); 
     }
+
+
  }
