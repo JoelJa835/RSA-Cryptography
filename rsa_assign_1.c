@@ -3,14 +3,14 @@
 int main(int argc, char *argv[] )  {  
    int opt;
    char * inputFile,*outputFile,*keyFile;
-    // put ':' in the starting of the
-    // string so that program can 
-    //distinguish between '?' and ':' 
+    // Put ':' in the beginning of the string so that program can 
+    //distinguish between '?' and ':' .
     while((opt = getopt(argc, argv,":i:o:k:degh")) != -1) 
     { 
         switch(opt) 
         { 
             case 'i': 
+                //Getting input filename and checking if the file already exists.If it doesnt it creates it.
                 printf("Input filename: %s\n", optarg);
                 inputFile = (char *)malloc((strlen(optarg)+1)*sizeof(char));
                 if (inputFile == NULL){
@@ -18,17 +18,36 @@ int main(int argc, char *argv[] )  {
                   return 1;
                 }
                 strcpy(inputFile,optarg);
+                if(!file_exists(inputFile)){
+                    FILE *fp = fopen(inputFile, "w");
+                    if(fp == NULL)
+                        exit(1);
+                    fclose(fp);
+                }
+                else
+                    continue;
                 break; 
             case 'o': 
+                //Getting output filename and checking if the file already exists.If it doesnt it creates it.
                 printf("Output filename: %s\n", optarg);
                 outputFile = (char *)malloc((strlen(optarg)+1)*sizeof(char));
                 if (outputFile == NULL){
                   puts("Memory allocation error.");
                   return 1;
                 }
-                strcpy(outputFile,optarg);  
+                strcpy(outputFile,optarg);
+                if(!file_exists(outputFile)){
+                    FILE *fp = fopen(outputFile, "w");
+                    if(fp == NULL)
+                        exit(1);
+                    fclose(fp);
+                }
+                else
+                    continue;
+
                 break; 
             case 'k': 
+                //Getting key filename and checking if the file already exists.If it doesnt it creates it.
                 printf("Key filename: %s\n", optarg);
                 keyFile = (char *)malloc((strlen(optarg)+1)*sizeof(char));
                 if (keyFile == NULL){
@@ -36,12 +55,23 @@ int main(int argc, char *argv[] )  {
                   return 1;
                 }
                 strcpy(keyFile,optarg);
+                if(!file_exists(keyFile)){
+                    FILE *fp = fopen(keyFile, "w");
+                    if(fp == NULL)
+                        exit(1);
+                    fclose(fp);
+                }
+                else
+                    continue;
+
                 break; 
             case 'g': 
                 generateKeys();
+                printf("Key generation executed!");
                 break;
             case 'd': 
                 decryptMessage(inputFile,outputFile,keyFile);
+                printf("Message encryption executed!");
 
                 free(inputFile);
                 free(outputFile);
@@ -49,6 +79,7 @@ int main(int argc, char *argv[] )  {
                 break;
             case 'e': 
                 encryptMessage(inputFile,outputFile,keyFile);
+                printf("Decryption executed!\n");
 
                 free(inputFile);
                 free(outputFile);
@@ -65,8 +96,7 @@ int main(int argc, char *argv[] )  {
                 break; 
         } 
     } 
-    // optind is for the extra arguments
-    // which are not parsed
+    //Optind is for the extra arguments which are not parsed.
     for(; optind < argc; optind++){     
         printf("extra arguments: %s\n", argv[optind]); 
     }

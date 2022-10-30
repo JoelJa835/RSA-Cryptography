@@ -7,6 +7,8 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
+#include   <stdbool.h>
+
 
 
 /*
@@ -25,6 +27,12 @@ void encryptMessage(char* inputFile, char* outputFile, char* keyFile);
  * Decrypts the input file with the ciphertext in it and writes the decoded text into the output file
  */
 void decryptMessage(char* inputFile, char* outputFile, char* keyFile);
+
+
+/*
+ * Checks if a file exists and returns boolean depending on the situation
+ */
+bool file_exists(const char *filename);
 
 
 #endif

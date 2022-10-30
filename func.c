@@ -23,7 +23,7 @@ void generateKeys(){
     gmp_scanf("%Zd",q);
 
     //Checking if the numbers entered are prime. The function doesn't always find if a number is prime when the number is 30-40 digits.
-    if(mpz_probab_prime_p(p,200) == 2 && mpz_probab_prime_p(q,200) == 2){
+    if(mpz_probab_prime_p(p,50) == 2 && mpz_probab_prime_p(q,50) == 2){
         //Initialize e to 2.
         mpz_set_ui(e,2);
         //Calculate n.
@@ -87,26 +87,26 @@ void encryptMessage( char* inputFile, char* outputFile,char * keyFile){
     char ch;
     char *plaintext,*n_string,*d_string;
 
-    //Defining and initializing mpz variables
-    mpz_t c; mpz_init(c);
+    //Defining and initializing mpz variables.
+    mpz_t C; mpz_init(C);
     mpz_t n; mpz_init(n);
     mpz_t d; mpz_init(d);
     mpz_t b; mpz_init(b);
 
 
-    //Opening the keyfile in read mode
+    //Opening the keyfile in read mode.
     FILE* fp = fopen(keyFile, "r");
     //Checking if the file exist or not.
     if (fp == NULL) {
         printf("File Not Found1!\n");
         exit(1);
     } 
-    //Calculating the size of the file
+    //Calculating the size of the file.
     fseek(fp, 0, SEEK_END);
     long k_size = ftell(fp);
     fseek(fp, 0, SEEK_SET);
 
-    //Allocating space for n string bigger than its needed.
+    //Allocating space for n string bigger than its needed, to be sure it fits.
     n_string = (char*) calloc(k_size,sizeof(char));
     //
     size_t i=0;
@@ -117,25 +117,27 @@ void encryptMessage( char* inputFile, char* outputFile,char * keyFile){
     //Setting n.
     mpz_set_str(n,n_string,10);
 
-    //Allocating space for n string bigger than its needed.
+    //Allocating space for d string bigger than its needed, to be sure it fits.
     d_string = (char*) calloc(k_size,sizeof(char));
+    //Reseting i for next loop
     i=0;
     while ((ch = fgetc(fp)) != EOF) {
         d_string[i]=ch;
         i++;
-    }         
+    }   
+    //Setting d.      
     mpz_set_str(d,d_string,10);
 
     //Read the message to be enrypted from the input file.
     FILE* fp1 = fopen(inputFile, "r");
-    //Checking if the file exist or not
+    //Checking if the file exist or not.
     if (fp1 == NULL) {
         printf("File Not Found!\n");
         exit(1);
     }
     
     fseek(fp1, 0, SEEK_END);
-    long f_size = ftell(fp);
+    long f_size = ftell(fp1);
     fseek(fp1, 0, SEEK_SET);
 
     
@@ -145,7 +147,7 @@ void encryptMessage( char* inputFile, char* outputFile,char * keyFile){
     }
     fgets(plaintext, f_size, fp1);
 
-    //Write the encoded chaacters to the output file
+    //Write the encoded characters to the output file.
     FILE* fp2 = fopen(outputFile, "w");
     //Checking if the file exist or not
     if (fp2 == NULL) {
@@ -154,17 +156,22 @@ void encryptMessage( char* inputFile, char* outputFile,char * keyFile){
     }
 
     for(size_t p =0; p<f_size; p++){
-        mpz_set_ui(b,plaintext[p]);
-        mpz_powm(c,b,d,n);
-        // gmp_printf("%Zd\n",c);
-        // gmp_printf("%Zd\n",b);
-        // gmp_printf("%Zd\n",d);
-        // gmp_printf("%Zd\n",n);
-        gmp_fprintf(fp2,"%Zd ",c);
+        if(plaintext[p]== 0)
+            //Dont encrypt null terminator
+            break;
+        else{
+            mpz_set_ui(b,plaintext[p]);
+            mpz_powm(C,b,d,n);
+            //gmp_printf("%Zd\n",C);
+            // gmp_printf("%Zd\n",b);
+            // gmp_printf("%Zd\n",d);
+            // gmp_printf("%Zd\n",n);
+            gmp_fprintf(fp2,"%Zd ",C);
+        }
     }
 
-    //Free the space occupied
-    mpz_clear(c);
+    //Free the space occupied.
+    mpz_clear(C);
     mpz_clear(n);
     mpz_clear(d);
     mpz_clear(b);
@@ -178,7 +185,102 @@ void encryptMessage( char* inputFile, char* outputFile,char * keyFile){
 
 
 void decryptMessage(char* inputFile, char* outputFile, char* keyFile){
+    char ch;
+    char *n_string,*e_string;
+    //int tmp[1];
+    
+
+    //Defining and initializing mpz variables.
+    mpz_t D; mpz_init(D);
+    mpz_t n; mpz_init(n);
+    mpz_t e; mpz_init(e);
+    mpz_t b; mpz_init(b);
+    mpz_t ciphertext; mpz_init(ciphertext);
+    mpz_t decryptedtext; mpz_init(decryptedtext);
+
+    //Opening the keyfile in read mode.
+    FILE* fp = fopen(keyFile, "r");
+    //Checking if the file exist or not.
+    if (fp == NULL) {
+        printf("File Not Found1!\n");
+        exit(1);
+    } 
+    //Calculating the size of the file.
+    fseek(fp, 0, SEEK_END);
+    long k_size = ftell(fp);
+    fseek(fp, 0, SEEK_SET);
+
+    //Allocating space for n string bigger than its needed, to be sure it fits.
+    n_string = (char*) calloc(k_size,sizeof(char));
+    size_t i=0;
+    while ((ch = fgetc(fp)) != ' ') {
+        n_string[i]=ch;
+        i++;
+    }
+    //Setting n.
+    mpz_set_str(n,n_string,10);
+
+
+    //Allocating space for e string bigger than its needed, to be sure it fits.
+    e_string = (char*) calloc(k_size,sizeof(char));
+    //Reseting i for next loop
+    i=0;
+    while ((ch = fgetc(fp)) != EOF) {
+        e_string[i]=ch;
+        i++;
+    }     
+    //Setting e.    
+    mpz_set_str(e,e_string,10);
+
+
+    //Read the message to be decrypted from the input file.
+    FILE* fp1 = fopen(inputFile, "r");
+    //Checking if the file exist or not.
+    if (fp1 == NULL) {
+        printf("File Not Found!\n");
+        exit(1);
+    }
+    
+
+    //Write the decoded chaacters to the output file.
+    FILE* fp2 = fopen(outputFile, "w");
+    //Checking if the file exist or not
+    if (fp2 == NULL) {
+        printf("File Not Found!\n");
+        exit(1);
+    }
+    //Decrypt write to output file.
+    while(mpz_inp_str(ciphertext, fp1, 10) != 0){
+        mpz_powm(decryptedtext, ciphertext, e, n);
+        ch = mpz_get_ui(decryptedtext);
+		fprintf(fp2,"%c", ch);
+    }
+
+
+     //Free the space occupied.
+    mpz_clear(D);
+    mpz_clear(n);
+    mpz_clear(e);
+    mpz_clear(b);
+    mpz_clear(ciphertext);
+    mpz_clear(decryptedtext);
+    //Close file descriptors.
+    fclose(fp);
+    fclose(fp2);
+    fclose(fp1);
+
+}
 
 
 
+bool file_exists(const char *filename)
+{
+    FILE *fp = fopen(filename, "r");
+    bool is_exist = false;
+    if (fp != NULL)
+    {
+        is_exist = true;
+        fclose(fp); //Close the file descriptor
+    }
+    return is_exist;
 }
