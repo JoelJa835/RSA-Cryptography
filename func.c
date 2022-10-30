@@ -249,7 +249,7 @@ void decryptMessage(char* inputFile, char* outputFile, char* keyFile){
         printf("File Not Found!\n");
         exit(1);
     }
-    //Decrypt write to output file.
+    //Decrypt message and write to output file.
     while(mpz_inp_str(ciphertext, fp1, 10) != 0){
         mpz_powm(decryptedtext, ciphertext, e, n);
         ch = mpz_get_ui(decryptedtext);
