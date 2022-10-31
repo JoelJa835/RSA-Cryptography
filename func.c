@@ -145,7 +145,10 @@ void encryptMessage( char* inputFile, char* outputFile,char * keyFile){
      if(plaintext == NULL){
         printf("Error");
     }
-    fgets(plaintext, f_size, fp1);
+
+    //Not sure what problem has fgets but fread ficed the problem
+    //fgets(plaintext, f_size, fp1);
+    fread(plaintext, sizeof(char), f_size, fp1);
 
     //Write the encoded characters to the output file.
     FILE* fp2 = fopen(outputFile, "w");
@@ -156,18 +159,15 @@ void encryptMessage( char* inputFile, char* outputFile,char * keyFile){
     }
 
     for(size_t p =0; p<f_size; p++){
-        if(plaintext[p]== 0)
-            //Dont encrypt null terminator
-            break;
-        else{
-            mpz_set_ui(b,plaintext[p]);
+            ch = plaintext[p];
+            mpz_set_ui(b,ch);
             mpz_powm(C,b,d,n);
             //gmp_printf("%Zd\n",C);
             // gmp_printf("%Zd\n",b);
             // gmp_printf("%Zd\n",d);
             // gmp_printf("%Zd\n",n);
             gmp_fprintf(fp2,"%Zd ",C);
-        }
+        
     }
 
     //Free the space occupied.
@@ -195,8 +195,6 @@ void decryptMessage(char* inputFile, char* outputFile, char* keyFile){
     mpz_t n; mpz_init(n);
     mpz_t e; mpz_init(e);
     mpz_t b; mpz_init(b);
-    mpz_t ciphertext; mpz_init(ciphertext);
-    mpz_t decryptedtext; mpz_init(decryptedtext);
 
     //Opening the keyfile in read mode.
     FILE* fp = fopen(keyFile, "r");
@@ -250,11 +248,16 @@ void decryptMessage(char* inputFile, char* outputFile, char* keyFile){
         exit(1);
     }
     //Decrypt message and write to output file.
-    while(mpz_inp_str(ciphertext, fp1, 10) != 0){
-        mpz_powm(decryptedtext, ciphertext, e, n);
-        ch = mpz_get_ui(decryptedtext);
+    while(mpz_inp_str(b, fp1, 10) ){
+        //printf("%Zd\n",b);
+        mpz_powm(D, b, e, n);
+        //gmp_printf("%Zd",D);
+        ch = mpz_get_ui(D);
+        //printf("\n%c",ch);
 		fprintf(fp2,"%c", ch);
     }
+
+    //printf("here:%lu",mpz_inp_str(b, fp1, 10));
 
 
      //Free the space occupied.
@@ -262,8 +265,6 @@ void decryptMessage(char* inputFile, char* outputFile, char* keyFile){
     mpz_clear(n);
     mpz_clear(e);
     mpz_clear(b);
-    mpz_clear(ciphertext);
-    mpz_clear(decryptedtext);
     //Close file descriptors.
     fclose(fp);
     fclose(fp2);

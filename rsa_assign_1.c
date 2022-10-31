@@ -71,7 +71,7 @@ int main(int argc, char *argv[] )  {
                 break;
             case 'd': 
                 decryptMessage(inputFile,outputFile,keyFile);
-                printf("Message encryption executed!");
+                printf("Decryption executed!\n");
 
                 free(inputFile);
                 free(outputFile);
@@ -79,7 +79,7 @@ int main(int argc, char *argv[] )  {
                 break;
             case 'e': 
                 encryptMessage(inputFile,outputFile,keyFile);
-                printf("Decryption executed!\n");
+                printf("Message encryption executed!");
 
                 free(inputFile);
                 free(outputFile);
